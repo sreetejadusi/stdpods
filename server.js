@@ -250,14 +250,23 @@ async function startApi() {
     command: process.argv.join(" "),
   });
 
-  await verifyDatabaseConnection("api_startup");
-
-  app.listen(port, () => {
+  const server = app.listen(port, async () => {
     logInfo("api_listening", {
       component: "api",
       port,
     });
+
+    try {
+      await verifyDatabaseConnection("api_startup");
+    } catch (error) {
+      logError("api_startup_database_check_failed", {
+        component: "api",
+        error,
+      });
+    }
   });
+
+  return server;
 }
 
 startApi().catch((error) => {
